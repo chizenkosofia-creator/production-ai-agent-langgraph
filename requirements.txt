@@ -1,0 +1,6 @@
+-r requirements-base.txt
+
+# Local embeddings (no second vendor key). CPU-only torch is installed separately in
+# the Dockerfile (before this file) to keep the image small.
+langchain-huggingface>=1.0,<2.0
+sentence-transformers>=3.0,<6.0

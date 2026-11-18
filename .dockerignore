@@ -1,0 +1,13 @@
+.env
+.git
+.github
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+tests/
+README.md
+pytest.ini
+pyproject.toml
+.flake8
+requirements-dev.txt
