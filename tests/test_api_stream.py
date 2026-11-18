@@ -13,7 +13,8 @@ import api.main as api_main
 from agent.graph import AgentRuntime, build_graph
 from agent.rag import set_vector_store
 from core.config import get_settings
-from tests.fakes import ScriptedChatModel, StubVectorStore, doc, tool_call_message
+from tests.fakes import (ScriptedChatModel, StubVectorStore, doc,
+                         tool_call_message)
 
 
 def parse_sse(raw: str) -> list[tuple[str, dict]]:

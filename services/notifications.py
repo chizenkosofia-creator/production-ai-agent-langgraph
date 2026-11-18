@@ -99,9 +99,8 @@ def enqueue_deliveries(notification_ids: list[int]) -> int:
     """Publish one Celery task per id. Never raises: the sweeper is the safety net."""
     if not notification_ids:
         return 0
-    from worker.tasks import (
-        deliver_notification,
-    )  # lazy: keeps Celery off the import path
+    from worker.tasks import \
+        deliver_notification  # lazy: keeps Celery off the import path
 
     queued = 0
     for notification_id in notification_ids:

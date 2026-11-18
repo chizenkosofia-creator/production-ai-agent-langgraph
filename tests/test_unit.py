@@ -9,7 +9,8 @@ from langgraph.types import Command
 from agent.graph import should_continue
 from agent.rag import set_vector_store
 from agent.ticket_tools import create_support_ticket
-from agent.tools import analyze_data, calculator, crm_lookup, search_knowledge_base
+from agent.tools import (analyze_data, calculator, crm_lookup,
+                         search_knowledge_base)
 from core.config import get_settings
 from tests.fakes import StubVectorStore, doc
 

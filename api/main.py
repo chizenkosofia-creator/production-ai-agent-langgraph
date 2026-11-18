@@ -36,35 +36,22 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Annotated, Any, Optional
 
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, Path, Request, status
+from fastapi import (APIRouter, Depends, FastAPI, HTTPException, Path, Request,
+                     status)
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
-from langchain_core.messages import (
-    AIMessage,
-    AIMessageChunk,
-    BaseMessage,
-    HumanMessage,
-    ToolMessage,
-)
+from langchain_core.messages import (AIMessage, AIMessageChunk, BaseMessage,
+                                     HumanMessage, ToolMessage)
 from langgraph.errors import GraphRecursionError
 
 from agent.graph import AgentRuntime, graph_lifespan
 from agent.locks import thread_lock
-from api.schemas import (
-    THREAD_ID_PATTERN,
-    ChatRequest,
-    ChatResponse,
-    ErrorResponse,
-    HistoryMessage,
-    HistoryResponse,
-)
+from api.schemas import (THREAD_ID_PATTERN, ChatRequest, ChatResponse,
+                         ErrorResponse, HistoryMessage, HistoryResponse)
 from core.config import Settings, get_settings
-from core.observability import (
-    MetricsCallback,
-    configure_observability,
-    log_turn_metrics,
-)
+from core.observability import (MetricsCallback, configure_observability,
+                                log_turn_metrics)
 
 logger = logging.getLogger("api")
 

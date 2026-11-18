@@ -11,7 +11,8 @@ plain function and as a FastAPI dependency (and overridden in tests).
 from functools import lru_cache
 from typing import Literal, Optional
 
-from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
+from pydantic import (AliasChoices, Field, SecretStr, field_validator,
+                      model_validator)
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 

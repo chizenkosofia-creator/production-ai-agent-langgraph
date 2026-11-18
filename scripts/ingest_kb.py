@@ -17,12 +17,8 @@ from pathlib import Path
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from agent.rag import (
-    close_vector_store,
-    get_vector_store,
-    ingest_documents,
-    init_vector_store,
-)
+from agent.rag import (close_vector_store, get_vector_store, ingest_documents,
+                       init_vector_store)
 from core.config import get_settings
 
 logger = logging.getLogger("ingest_kb")

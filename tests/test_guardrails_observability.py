@@ -18,13 +18,11 @@ from agent.graph import build_graph
 from api.schemas import REJECTION_MESSAGE, ChatRequest
 from core.config import Settings, get_settings
 from core.guardrails import normalize_text, scan_prompt
-from core.observability import (
-    MetricsCallback,
-    configure_observability,
-    log_turn_metrics,
-)
+from core.observability import (MetricsCallback, configure_observability,
+                                log_turn_metrics)
 from tests.fakes import ScriptedChatModel, tool_call_message, with_usage
-from tests.test_api_stream import make_client, parse_sse  # noqa: F401  (pytest fixture)
+from tests.test_api_stream import (make_client,  # noqa: F401  (pytest fixture)
+                                   parse_sse)
 
 # ============================ Track 4: guardrails =============================
 BENIGN = [

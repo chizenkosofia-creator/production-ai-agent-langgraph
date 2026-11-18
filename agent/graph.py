@@ -34,13 +34,8 @@ from dataclasses import dataclass
 from typing import Any, Literal, Optional
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import (
-    AIMessage,
-    BaseMessage,
-    SystemMessage,
-    ToolMessage,
-    trim_messages,
-)
+from langchain_core.messages import (AIMessage, BaseMessage, SystemMessage,
+                                     ToolMessage, trim_messages)
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver

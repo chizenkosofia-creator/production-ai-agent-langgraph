@@ -11,12 +11,8 @@ import pytest
 from pydantic import ValidationError
 from sqlalchemy import select, text
 
-from agent.ticket_tools import (
-    create_support_ticket,
-    list_operators,
-    ticket_analytics,
-    update_ticket,
-)
+from agent.ticket_tools import (create_support_ticket, list_operators,
+                                ticket_analytics, update_ticket)
 from db.models import Notification, Ticket
 from services import tickets
 
