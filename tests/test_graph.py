@@ -7,8 +7,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from agent.graph import build_graph
 from agent.rag import set_vector_store
 from core.config import get_settings
-from tests.fakes import (ScriptedChatModel, StubVectorStore, doc,
-                         tool_call_message)
+from tests.fakes import ScriptedChatModel, StubVectorStore, doc, tool_call_message
 
 
 def _config(thread: str) -> dict:

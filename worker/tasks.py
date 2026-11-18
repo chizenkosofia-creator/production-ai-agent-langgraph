@@ -15,8 +15,7 @@ from pathlib import Path
 from typing import Any, TypeVar
 
 from celery import Task
-from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
-                                    create_async_engine)
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
 from core.config import Settings, get_settings
@@ -143,8 +142,7 @@ def resolve_kb_dir(requested: str, allowed_root: str) -> Path:
 @celery_app.task(name="kb.ingest", time_limit=3600, soft_time_limit=3500)
 def ingest_kb(directory: str = ".", replace: bool = False) -> int:
     """Chunk, embed and upsert documents under the configured KB directory."""
-    from scripts.ingest_kb import \
-        main as ingest_main  # lazy: pulls in torch/embeddings
+    from scripts.ingest_kb import main as ingest_main  # lazy: pulls in torch/embeddings
 
     target = resolve_kb_dir(directory, get_settings().kb_docs_dir)
     count = asyncio.run(ingest_main(target, replace))
