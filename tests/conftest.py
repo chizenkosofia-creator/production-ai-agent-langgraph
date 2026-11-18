@@ -89,7 +89,9 @@ async def db(pg_settings):
 
     factory = init_db(pg_settings)
     async with factory() as session:
-        await session.execute(text("TRUNCATE notifications, tickets RESTART IDENTITY CASCADE"))
+        await session.execute(
+            text("TRUNCATE notifications, tickets RESTART IDENTITY CASCADE")
+        )
         await session.execute(text("UPDATE operators SET active = true"))
         await session.commit()
     yield factory

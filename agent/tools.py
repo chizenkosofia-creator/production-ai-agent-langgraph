@@ -212,7 +212,9 @@ def analyze_data(values: list[float], operation: str) -> str:
         if len(values) < 2:
             raise ToolInputError("percent_change needs at least 2 values")
         if values[0] == 0:
-            raise ToolInputError("percent_change is undefined when the first value is 0")
+            raise ToolInputError(
+                "percent_change is undefined when the first value is 0"
+            )
         result = (values[-1] - values[0]) / abs(values[0]) * 100
         return f"percent_change over {len(values)} points = {result:.2f}%"
 
@@ -243,7 +245,9 @@ class KBSearchInput(BaseModel):
     tool_call_id: Annotated[str, InjectedToolCallId]
 
 
-def _kb_reply(tool_call_id: str, content: str, context: list[dict[str, Any]]) -> Command:
+def _kb_reply(
+    tool_call_id: str, content: str, context: list[dict[str, Any]]
+) -> Command:
     """Build a Command that answers the tool call AND writes state."""
     return Command(
         update={
@@ -254,7 +258,9 @@ def _kb_reply(tool_call_id: str, content: str, context: list[dict[str, Any]]) ->
 
 
 @tool("search_knowledge_base", args_schema=KBSearchInput)
-async def search_knowledge_base(query: str, tool_call_id: str, top_k: int = 4) -> Command:
+async def search_knowledge_base(
+    query: str, tool_call_id: str, top_k: int = 4
+) -> Command:
     """Search internal documentation (policies, runbooks, product how-tos).
 
     Returns the most relevant passages with their sources and also stores them

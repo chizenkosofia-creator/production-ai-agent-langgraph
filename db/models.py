@@ -54,7 +54,9 @@ class Ticket(Base):
     title: Mapped[str] = mapped_column(String(120))
     description: Mapped[str] = mapped_column(Text)
     priority: Mapped[str] = mapped_column(String(10))
-    status: Mapped[str] = mapped_column(String(12), default="open", server_default="open")
+    status: Mapped[str] = mapped_column(
+        String(12), default="open", server_default="open"
+    )
     customer_id: Mapped[Optional[str]] = mapped_column(String(16))
     assignee_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("operators.id", ondelete="SET NULL")
@@ -69,7 +71,9 @@ class Ticket(Base):
 
     __table_args__ = (
         CheckConstraint(_in_list("status", TICKET_STATUSES), name="ck_tickets_status"),
-        CheckConstraint(_in_list("priority", TICKET_PRIORITIES), name="ck_tickets_priority"),
+        CheckConstraint(
+            _in_list("priority", TICKET_PRIORITIES), name="ck_tickets_priority"
+        ),
         Index("ix_tickets_status", "status"),
         Index("ix_tickets_created_at", "created_at"),
         Index("ix_tickets_closed_at", "closed_at"),
@@ -84,7 +88,9 @@ class Notification(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     ticket_id: Mapped[str] = mapped_column(ForeignKey("tickets.id", ondelete="CASCADE"))
     channel: Mapped[str] = mapped_column(String(10))
-    status: Mapped[str] = mapped_column(String(10), default="pending", server_default="pending")
+    status: Mapped[str] = mapped_column(
+        String(10), default="pending", server_default="pending"
+    )
     attempts: Mapped[int] = mapped_column(default=0, server_default="0")
     payload: Mapped[dict[str, Any]] = mapped_column(JSONB)
     last_error: Mapped[Optional[str]] = mapped_column(Text)
@@ -97,6 +103,8 @@ class Notification(Base):
         CheckConstraint(
             _in_list("channel", NOTIFICATION_CHANNELS), name="ck_notifications_channel"
         ),
-        CheckConstraint(_in_list("status", NOTIFICATION_STATUSES), name="ck_notifications_status"),
+        CheckConstraint(
+            _in_list("status", NOTIFICATION_STATUSES), name="ck_notifications_status"
+        ),
         Index("ix_notifications_status_created", "status", "created_at"),
     )

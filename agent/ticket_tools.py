@@ -49,7 +49,9 @@ async def create_support_ticket(
     priority 'urgent' automatically alert the on-call team by email and Slack.
     """
     if customer_id and not customer_exists(customer_id):
-        raise ToolInputError(f"unknown customer_id {customer_id}; verify with crm_lookup")
+        raise ToolInputError(
+            f"unknown customer_id {customer_id}; verify with crm_lookup"
+        )
 
     alert_ids: list[int] = []
     async with get_sessionmaker()() as session:
@@ -74,7 +76,9 @@ async def create_support_ticket(
 class UpdateTicketInput(BaseModel):
     """Arguments for ``update_ticket``."""
 
-    ticket_id: str = Field(pattern=r"^TCK-[0-9A-F]{8}$", description="e.g. TCK-1A2B3C4D")
+    ticket_id: str = Field(
+        pattern=r"^TCK-[0-9A-F]{8}$", description="e.g. TCK-1A2B3C4D"
+    )
     status: Optional[Literal["open", "in_progress", "closed"]] = None
     assignee_email: Optional[str] = Field(
         default=None,

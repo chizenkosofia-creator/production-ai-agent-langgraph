@@ -87,7 +87,8 @@ async def queue_urgent_alert(session: AsyncSession, ticket: Ticket) -> list[int]
         "created_at": ticket.created_at.isoformat(),
     }
     rows = [
-        Notification(ticket_id=ticket.id, channel=ch, payload=payload) for ch in URGENT_CHANNELS
+        Notification(ticket_id=ticket.id, channel=ch, payload=payload)
+        for ch in URGENT_CHANNELS
     ]
     session.add_all(rows)
     await session.flush()
@@ -98,7 +99,9 @@ def enqueue_deliveries(notification_ids: list[int]) -> int:
     """Publish one Celery task per id. Never raises: the sweeper is the safety net."""
     if not notification_ids:
         return 0
-    from worker.tasks import deliver_notification  # lazy: keeps Celery off the import path
+    from worker.tasks import (
+        deliver_notification,
+    )  # lazy: keeps Celery off the import path
 
     queued = 0
     for notification_id in notification_ids:
@@ -140,7 +143,9 @@ async def deliver_once(
         row = (
             await session.execute(
                 select(Notification)
-                .where(Notification.id == notification_id, Notification.status == "pending")
+                .where(
+                    Notification.id == notification_id, Notification.status == "pending"
+                )
                 .with_for_update(skip_locked=True)
             )
         ).scalar_one_or_none()
@@ -153,7 +158,9 @@ async def deliver_once(
             row.last_error = f"{type(exc).__name__}: {exc}"[:500]
             if row.attempts >= max_attempts:
                 row.status = "failed"
-                logger.error("Notification %s failed permanently: %s", row.id, row.last_error)
+                logger.error(
+                    "Notification %s failed permanently: %s", row.id, row.last_error
+                )
                 return "exhausted"
             return "retry"
         row.status = "sent"

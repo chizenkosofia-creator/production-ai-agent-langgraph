@@ -25,7 +25,9 @@ class Reply:
 class GroqMock:
     """Records every request and answers from a script (last reply repeats)."""
 
-    def __init__(self, replies: list[Reply], model: str = "llama-3.1-8b-instant") -> None:
+    def __init__(
+        self, replies: list[Reply], model: str = "llama-3.1-8b-instant"
+    ) -> None:
         self.replies = replies
         self.model = model
         self.requests: list[httpx.Request] = []
@@ -44,7 +46,12 @@ class GroqMock:
         if reply.status != 200:
             return httpx.Response(
                 reply.status,
-                json={"error": {"message": f"simulated {reply.status}", "type": "mock_error"}},
+                json={
+                    "error": {
+                        "message": f"simulated {reply.status}",
+                        "type": "mock_error",
+                    }
+                },
                 # the OpenAI SDK honours this header, which keeps retry tests fast
                 headers={"retry-after-ms": "1"},
             )
@@ -67,7 +74,10 @@ class GroqMock:
         }
 
     def _completion(self, reply: Reply) -> dict[str, Any]:
-        message: dict[str, Any] = {"role": "assistant", "content": reply.content or None}
+        message: dict[str, Any] = {
+            "role": "assistant",
+            "content": reply.content or None,
+        }
         if reply.tool_calls:
             message["tool_calls"] = [
                 {k: v for k, v in self._tool_call_json(i, n, a).items() if k != "index"}
@@ -106,14 +116,18 @@ class GroqMock:
         out = [self._chunk({"role": "assistant", "content": ""})]
         words = reply.content.split(" ") if reply.content else []
         for i, word in enumerate(words):
-            out.append(self._chunk({"content": word + (" " if i < len(words) - 1 else "")}))
+            out.append(
+                self._chunk({"content": word + (" " if i < len(words) - 1 else "")})
+            )
         for i, (name, args) in enumerate(reply.tool_calls):
             call = self._tool_call_json(i, name, args)
             arguments = call["function"].pop("arguments")
             call["function"]["arguments"] = ""
             out.append(self._chunk({"tool_calls": [call]}))
             out.append(
-                self._chunk({"tool_calls": [{"index": i, "function": {"arguments": arguments}}]})
+                self._chunk(
+                    {"tool_calls": [{"index": i, "function": {"arguments": arguments}}]}
+                )
             )
         out.append(self._chunk({}, "tool_calls" if reply.tool_calls else "stop"))
         usage = {

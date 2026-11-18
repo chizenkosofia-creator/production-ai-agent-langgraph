@@ -83,22 +83,30 @@ def test_stream_emits_tool_and_token_events_in_order(make_client):
 
 
 def test_stream_reports_kb_sources_in_done_event(make_client):
-    set_vector_store(StubVectorStore([(doc("Refunds take 5-10 days.", "refund_policy.md"), 0.1)]))
+    set_vector_store(
+        StubVectorStore([(doc("Refunds take 5-10 days.", "refund_policy.md"), 0.1)])
+    )
     client, _ = make_client(
         [
             tool_call_message("search_knowledge_base", {"query": "refund timing"}),
             AIMessage("5-10 business days."),
         ]
     )
-    r = client.post("/api/v1/chat/stream", json={"thread_id": "s2", "message": "refund time?"})
+    r = client.post(
+        "/api/v1/chat/stream", json={"thread_id": "s2", "message": "refund time?"}
+    )
     done = parse_sse(r.text)[-1]
     assert done[0] == "done" and done[1]["sources"] == ["refund_policy.md"]
 
 
 def test_stream_follow_up_turn_uses_persisted_thread(make_client):
     client, llm = make_client([AIMessage("Hi Dana."), AIMessage("You are Dana.")])
-    client.post("/api/v1/chat/stream", json={"thread_id": "s3", "message": "I am Dana."})
-    r = client.post("/api/v1/chat/stream", json={"thread_id": "s3", "message": "Who am I?"})
+    client.post(
+        "/api/v1/chat/stream", json={"thread_id": "s3", "message": "I am Dana."}
+    )
+    r = client.post(
+        "/api/v1/chat/stream", json={"thread_id": "s3", "message": "Who am I?"}
+    )
     assert parse_sse(r.text)[-1][0] == "done"
     assert any("I am Dana." in str(m.content) for m in llm.calls[1])
 
@@ -108,7 +116,9 @@ def test_stream_follow_up_turn_uses_persisted_thread(make_client):
 
 def test_busy_thread_is_rejected(make_client):
     client, _ = make_client([AIMessage("never sent")], lock_free=False)
-    stream = client.post("/api/v1/chat/stream", json={"thread_id": "busy", "message": "hello"})
+    stream = client.post(
+        "/api/v1/chat/stream", json={"thread_id": "busy", "message": "hello"}
+    )
     assert parse_sse(stream.text) == [
         ("error", {"detail": "Another request is running on this thread."})
     ]
@@ -126,7 +136,9 @@ def test_non_streaming_chat_still_works(make_client):
 
 def test_validation_errors_use_error_envelope(make_client):
     client, _ = make_client([AIMessage("x")])
-    r = client.post("/api/v1/chat/stream", json={"thread_id": "bad id!", "message": "hi"})
+    r = client.post(
+        "/api/v1/chat/stream", json={"thread_id": "bad id!", "message": "hi"}
+    )
     assert r.status_code == 422 and r.json()["error"] == "validation_error"
 
 
@@ -135,4 +147,7 @@ def test_runaway_agent_is_cut_off_in_stream(make_client):
     r = client.post("/api/v1/chat/stream", json={"thread_id": "loop", "message": "go"})
     events = parse_sse(r.text)
     assert events[-1][0] == "done"
-    assert sum(1 for e, _ in events if e == "tool_start") == get_settings().agent_max_iterations
+    assert (
+        sum(1 for e, _ in events if e == "tool_start")
+        == get_settings().agent_max_iterations
+    )

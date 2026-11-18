@@ -100,14 +100,18 @@ class Settings(BaseSettings):
     def _validate_database_url(cls, value: str) -> str:
         """Ensure a Postgres DSN that psycopg can use is supplied."""
         if not value.startswith(("postgresql://", "postgres://")):
-            raise ValueError("DATABASE_URL must start with 'postgresql://' or 'postgres://'")
+            raise ValueError(
+                "DATABASE_URL must start with 'postgresql://' or 'postgres://'"
+            )
         return value
 
     @model_validator(mode="after")
     def _tracing_needs_key(self) -> "Settings":
         """Fail fast instead of silently running untraced."""
         if self.langsmith_tracing and self.langsmith_api_key is None:
-            raise ValueError("LANGSMITH_API_KEY is required when LANGSMITH_TRACING is true")
+            raise ValueError(
+                "LANGSMITH_API_KEY is required when LANGSMITH_TRACING is true"
+            )
         return self
 
     @field_validator("agent_recursion_limit")
@@ -116,7 +120,9 @@ class Settings(BaseSettings):
         """The recursion limit must leave room for the iteration cap."""
         max_iter = info.data.get("agent_max_iterations", 8)
         if value < 2 * max_iter + 2:
-            raise ValueError("AGENT_RECURSION_LIMIT must be >= 2 * AGENT_MAX_ITERATIONS + 2")
+            raise ValueError(
+                "AGENT_RECURSION_LIMIT must be >= 2 * AGENT_MAX_ITERATIONS + 2"
+            )
         return value
 
 

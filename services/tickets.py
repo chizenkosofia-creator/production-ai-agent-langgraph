@@ -26,7 +26,9 @@ def new_ticket_id() -> str:
     return f"TCK-{uuid.uuid4().hex[:8].upper()}"
 
 
-def ticket_to_dict(ticket: Ticket, assignee_email: Optional[str] = None) -> dict[str, Any]:
+def ticket_to_dict(
+    ticket: Ticket, assignee_email: Optional[str] = None
+) -> dict[str, Any]:
     """JSON-safe view of a ticket (what tools return to the LLM)."""
     return {
         "ticket_id": ticket.id,
@@ -96,7 +98,9 @@ async def weekly_stats(
 
     resolved = (
         await session.execute(
-            select(func.count()).where(Ticket.closed_at > start, Ticket.closed_at <= end)
+            select(func.count()).where(
+                Ticket.closed_at > start, Ticket.closed_at <= end
+            )
         )
     ).scalar_one()
 
@@ -141,10 +145,14 @@ async def update_ticket(
     re-opening clears it.
     """
     if status is not None and status not in TICKET_STATUSES:
-        raise DomainError(f"invalid status '{status}'; use one of {', '.join(TICKET_STATUSES)}")
+        raise DomainError(
+            f"invalid status '{status}'; use one of {', '.join(TICKET_STATUSES)}"
+        )
 
     ticket = (
-        await session.execute(select(Ticket).where(Ticket.id == ticket_id).with_for_update())
+        await session.execute(
+            select(Ticket).where(Ticket.id == ticket_id).with_for_update()
+        )
     ).scalar_one_or_none()
     if ticket is None:
         raise DomainError(f"ticket {ticket_id} not found")
@@ -154,13 +162,19 @@ async def update_ticket(
     if assignee_email is not None:
         operator = (
             await session.execute(
-                select(Operator).where(func.lower(Operator.email) == assignee_email.lower())
+                select(Operator).where(
+                    func.lower(Operator.email) == assignee_email.lower()
+                )
             )
         ).scalar_one_or_none()
         if operator is None:
-            raise DomainError(f"no operator with email {assignee_email}; call list_operators")
+            raise DomainError(
+                f"no operator with email {assignee_email}; call list_operators"
+            )
         if not operator.active:
-            raise DomainError(f"operator {operator.email} is inactive and cannot be assigned")
+            raise DomainError(
+                f"operator {operator.email} is inactive and cannot be assigned"
+            )
         ticket.assignee_id = operator.id
 
     if status is not None and status != ticket.status:

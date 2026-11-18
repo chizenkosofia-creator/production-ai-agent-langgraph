@@ -44,7 +44,9 @@ def build_embeddings(settings: Settings) -> Embeddings:
     )
 
 
-def init_vector_store(settings: Settings, embeddings: Optional[Embeddings] = None) -> PGVector:
+def init_vector_store(
+    settings: Settings, embeddings: Optional[Embeddings] = None
+) -> PGVector:
     """Create the process-wide vector store (call once at startup)."""
     global _store
     _store = PGVector(

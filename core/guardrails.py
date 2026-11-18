@@ -75,7 +75,9 @@ INJECTION_RULES: dict[str, re.Pattern[str]] = {
         r"without (?:any )?(?:rules|restrictions|filters|limits))\b",
         _FLAGS,
     ),
-    "jailbreak_keywords": re.compile(r"\b(jailbreak|dan mode|developer mode enabled)\b", _FLAGS),
+    "jailbreak_keywords": re.compile(
+        r"\b(jailbreak|dan mode|developer mode enabled)\b", _FLAGS
+    ),
     # Forging the <document> fences that wrap retrieved knowledge-base text.
     "fence_spoofing": re.compile(r"</?\s*document\b", _FLAGS),
 }

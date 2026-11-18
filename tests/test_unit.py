@@ -40,11 +40,15 @@ async def test_calculator_ok_and_errors_are_strings():
     ok = await calculator.ainvoke({"expression": "(12500 + 2400) * 12"})
     assert "178,800" in ok
     assert (await calculator.ainvoke({"expression": "1/0"})).startswith("ERROR:")
-    assert (await calculator.ainvoke({"expression": "__import__('os')"})).startswith("ERROR:")
+    assert (await calculator.ainvoke({"expression": "__import__('os')"})).startswith(
+        "ERROR:"
+    )
 
 
 async def test_analyze_data_percent_change():
-    out = await analyze_data.ainvoke({"values": [100, 150], "operation": "percent_change"})
+    out = await analyze_data.ainvoke(
+        {"values": [100, 150], "operation": "percent_change"}
+    )
     assert "50.00%" in out
 
 
@@ -73,7 +77,9 @@ async def _kb(query: str = "refund policy", top_k: int = 4) -> Command:
 
 
 async def test_kb_tool_writes_context_and_fences_documents():
-    set_vector_store(StubVectorStore([(doc("Refunds take 5-10 days.", "refund_policy.md"), 0.2)]))
+    set_vector_store(
+        StubVectorStore([(doc("Refunds take 5-10 days.", "refund_policy.md"), 0.2)])
+    )
     cmd = await _kb()
     assert isinstance(cmd, Command)
     assert cmd.update["retrieved_context"][0]["source"] == "refund_policy.md"

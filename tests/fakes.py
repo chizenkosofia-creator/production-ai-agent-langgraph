@@ -85,7 +85,10 @@ class ScriptedChatModel(BaseChatModel):
 
 
 def tool_call_message(
-    name: str, args: dict[str, Any], call_id: str = "call_1", tokens: tuple[int, int] = (0, 0)
+    name: str,
+    args: dict[str, Any],
+    call_id: str = "call_1",
+    tokens: tuple[int, int] = (0, 0),
 ) -> AIMessage:
     """An AI message that requests one tool call (optionally reporting token usage)."""
     return AIMessage(

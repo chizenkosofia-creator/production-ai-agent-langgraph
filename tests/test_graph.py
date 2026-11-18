@@ -19,7 +19,9 @@ def _input(text: str) -> dict:
 
 
 async def test_rag_tool_result_lands_in_agent_state():
-    set_vector_store(StubVectorStore([(doc("Refunds take 5-10 days.", "refund_policy.md"), 0.1)]))
+    set_vector_store(
+        StubVectorStore([(doc("Refunds take 5-10 days.", "refund_policy.md"), 0.1)])
+    )
     llm = ScriptedChatModel(
         script=[
             tool_call_message("search_knowledge_base", {"query": "refund timing"}),
@@ -38,7 +40,9 @@ async def test_rag_tool_result_lands_in_agent_state():
 
 
 async def test_conversation_memory_is_keyed_by_thread_id():
-    llm = ScriptedChatModel(script=[AIMessage("Nice to meet you, Dana."), AIMessage("Dana.")])
+    llm = ScriptedChatModel(
+        script=[AIMessage("Nice to meet you, Dana."), AIMessage("Dana.")]
+    )
     graph = build_graph(MemorySaver(), get_settings(), llm=llm)
 
     await graph.ainvoke(_input("My name is Dana."), _config("thread-a"))
@@ -56,16 +60,23 @@ async def test_conversation_memory_is_keyed_by_thread_id():
 async def test_runaway_tool_loop_stops_gracefully_with_consistent_history():
     """A model that calls tools forever must hit the budget, not the recursion
     limit, and the stored thread must not contain unanswered tool calls."""
-    llm = ScriptedChatModel(script=[tool_call_message("calculator", {"expression": "1+1"})])
+    llm = ScriptedChatModel(
+        script=[tool_call_message("calculator", {"expression": "1+1"})]
+    )
     graph = build_graph(MemorySaver(), get_settings(), llm=llm)
 
     result = await graph.ainvoke(_input("loop forever"), _config("t-loop"))
 
     assert "wasn't able to finish" in result["messages"][-1].content
     assert len(llm.calls) == get_settings().agent_max_iterations
-    answered = {m.tool_call_id for m in result["messages"] if isinstance(m, ToolMessage)}
+    answered = {
+        m.tool_call_id for m in result["messages"] if isinstance(m, ToolMessage)
+    }
     requested = {
-        c["id"] for m in result["messages"] if isinstance(m, AIMessage) for c in m.tool_calls
+        c["id"]
+        for m in result["messages"]
+        if isinstance(m, AIMessage)
+        for c in m.tool_calls
     }
     # every tool call id is answered (ids repeat in this fake, so compare sets)
     assert requested <= answered

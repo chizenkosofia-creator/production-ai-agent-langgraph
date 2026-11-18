@@ -34,7 +34,10 @@ def _config(thread: str, **extra) -> dict:
 async def test_tool_round_trip_hits_the_groq_endpoint_correctly():
     mock = GroqMock(
         [
-            Reply(tool_calls=[("calculator", {"expression": "12500 * 12"})], usage=(120, 15)),
+            Reply(
+                tool_calls=[("calculator", {"expression": "12500 * 12"})],
+                usage=(120, 15),
+            ),
             Reply(content="Annual revenue is 150,000 USD.", usage=(180, 12)),
         ]
     )
@@ -46,12 +49,18 @@ async def test_tool_round_trip_hits_the_groq_endpoint_correctly():
     first = mock.requests[0]
     settings = get_settings()
     assert str(first.url) == "https://api.groq.com/openai/v1/chat/completions"
-    assert first.headers["authorization"] == f"Bearer {settings.llm_api_key.get_secret_value()}"
+    assert (
+        first.headers["authorization"]
+        == f"Bearer {settings.llm_api_key.get_secret_value()}"
+    )
 
     body = mock.bodies[0]
     assert body["model"] == settings.llm_model and body["temperature"] == 0
     assert body["messages"][0]["role"] == "system"
-    assert body["messages"][-1] == {"role": "user", "content": "What is 12500 times 12?"}
+    assert body["messages"][-1] == {
+        "role": "user",
+        "content": "What is 12500 times 12?",
+    }
     advertised = {t["function"]["name"] for t in body["tools"]}
     assert advertised == {
         t.name for t in ALL_TOOLS
@@ -71,7 +80,9 @@ async def test_streaming_requests_usage_and_yields_tokens():
 
     tokens = []
     async for chunk, meta in graph.astream(
-        _turn("refund time?"), _config("g2", callbacks=[metrics]), stream_mode="messages"
+        _turn("refund time?"),
+        _config("g2", callbacks=[metrics]),
+        stream_mode="messages",
     ):
         if meta.get("langgraph_node") == "agent" and chunk.content:
             tokens.append(chunk.content)
@@ -79,8 +90,13 @@ async def test_streaming_requests_usage_and_yields_tokens():
     assert len(tokens) > 3 and "".join(tokens) == "Refunds take five to ten days."
     body = mock.bodies[0]
     assert body["stream"] is True
-    assert body["stream_options"] == {"include_usage": True}, "needed for token accounting"
-    assert metrics.summary()["input_tokens"] == 90 and metrics.summary()["output_tokens"] == 8
+    assert body["stream_options"] == {
+        "include_usage": True
+    }, "needed for token accounting"
+    assert (
+        metrics.summary()["input_tokens"] == 90
+        and metrics.summary()["output_tokens"] == 8
+    )
 
 
 async def test_streamed_tool_call_is_reassembled_from_deltas():
@@ -91,10 +107,14 @@ async def test_streamed_tool_call_is_reassembled_from_deltas():
         ]
     )
     seen_nodes = []
-    async for _, meta in _graph(mock).astream(_turn("2+2?"), _config("g3"), stream_mode="messages"):
+    async for _, meta in _graph(mock).astream(
+        _turn("2+2?"), _config("g3"), stream_mode="messages"
+    ):
         seen_nodes.append(meta.get("langgraph_node"))
     assert "tools" in seen_nodes, "the tool call split across SSE deltas was executed"
-    assert any(m["role"] == "tool" and "4" in m["content"] for m in mock.bodies[1]["messages"])
+    assert any(
+        m["role"] == "tool" and "4" in m["content"] for m in mock.bodies[1]["messages"]
+    )
 
 
 async def test_rate_limit_is_retried_transparently():

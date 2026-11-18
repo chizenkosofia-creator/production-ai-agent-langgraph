@@ -34,7 +34,11 @@ def upgrade() -> None:
         sa.Column("priority", sa.String(10), nullable=False),
         sa.Column("status", sa.String(12), nullable=False, server_default="open"),
         sa.Column("customer_id", sa.String(16)),
-        sa.Column("assignee_id", sa.Integer(), sa.ForeignKey("operators.id", ondelete="SET NULL")),
+        sa.Column(
+            "assignee_id",
+            sa.Integer(),
+            sa.ForeignKey("operators.id", ondelete="SET NULL"),
+        ),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -48,9 +52,12 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
         ),
         sa.Column("closed_at", sa.DateTime(timezone=True)),
-        sa.CheckConstraint("status IN ('open', 'in_progress', 'closed')", name="ck_tickets_status"),
         sa.CheckConstraint(
-            "priority IN ('low', 'medium', 'high', 'urgent')", name="ck_tickets_priority"
+            "status IN ('open', 'in_progress', 'closed')", name="ck_tickets_status"
+        ),
+        sa.CheckConstraint(
+            "priority IN ('low', 'medium', 'high', 'urgent')",
+            name="ck_tickets_priority",
         ),
     )
     op.create_index("ix_tickets_status", "tickets", ["status"])
@@ -78,12 +85,16 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
         ),
         sa.Column("sent_at", sa.DateTime(timezone=True)),
-        sa.CheckConstraint("channel IN ('email', 'slack')", name="ck_notifications_channel"),
+        sa.CheckConstraint(
+            "channel IN ('email', 'slack')", name="ck_notifications_channel"
+        ),
         sa.CheckConstraint(
             "status IN ('pending', 'sent', 'failed')", name="ck_notifications_status"
         ),
     )
-    op.create_index("ix_notifications_status_created", "notifications", ["status", "created_at"])
+    op.create_index(
+        "ix_notifications_status_created", "notifications", ["status", "created_at"]
+    )
 
     op.execute("""
         INSERT INTO operators (name, email) VALUES

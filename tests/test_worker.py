@@ -49,12 +49,16 @@ async def _run(task, *args):
 async def _rows(factory) -> list[Notification]:
     async with factory() as session:
         return list(
-            (await session.execute(select(Notification).order_by(Notification.id))).scalars()
+            (
+                await session.execute(select(Notification).order_by(Notification.id))
+            ).scalars()
         )
 
 
 # ------------------------------ happy path -----------------------------------
-async def test_urgent_ticket_writes_outbox_atomically_and_delivers_both_channels(db, eager_worker):
+async def test_urgent_ticket_writes_outbox_atomically_and_delivers_both_channels(
+    db, eager_worker
+):
     transport = RecordingTransport()
     notifications.set_transport(transport)
 
@@ -83,11 +87,15 @@ async def test_transient_failures_are_retried_until_delivered(db, eager_worker):
     await create_support_ticket.ainvoke(URGENT)
 
     rows = await _rows(db)
-    assert all(r.status == "sent" and r.attempts == 3 and r.last_error is None for r in rows)
+    assert all(
+        r.status == "sent" and r.attempts == 3 and r.last_error is None for r in rows
+    )
     assert len(transport.calls) == 6
 
 
-async def test_permanent_failure_stops_at_max_attempts_and_keeps_the_error(db, eager_worker):
+async def test_permanent_failure_stops_at_max_attempts_and_keeps_the_error(
+    db, eager_worker
+):
     notifications.set_transport(RecordingTransport(always_fail=True))
 
     await create_support_ticket.ainvoke(URGENT)
@@ -130,9 +138,14 @@ async def test_broker_outage_does_not_fail_the_ticket_and_sweeper_recovers(
         out = json.loads(await create_support_ticket.ainvoke(URGENT))
 
     assert out["alerts_queued"] == 0, "nothing could be published"
-    assert out["ticket_id"].startswith("TCK-"), "the ticket itself must still be created"
+    assert out["ticket_id"].startswith(
+        "TCK-"
+    ), "the ticket itself must still be created"
     rows = await _rows(db)
-    assert [r.status for r in rows] == ["pending", "pending"], "outbox rows survived the outage"
+    assert [r.status for r in rows] == [
+        "pending",
+        "pending",
+    ], "outbox rows survived the outage"
     assert transport.calls == []
 
     # fresh rows are left alone by the sweeper ...

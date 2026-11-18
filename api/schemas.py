@@ -26,7 +26,9 @@ class ChatRequest(BaseModel):
         description="Conversation identifier. Reuse it to continue a conversation.",
         examples=["customer-42-session-1"],
     )
-    message: str = Field(min_length=1, max_length=8000, description="The user's message.")
+    message: str = Field(
+        min_length=1, max_length=8000, description="The user's message."
+    )
 
     @field_validator("message", mode="before")
     @classmethod

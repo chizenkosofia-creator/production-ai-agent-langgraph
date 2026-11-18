@@ -74,7 +74,11 @@ async def _deliver(
 # enforced in deliver_once. (Passing max_retries=None to self.retry() would instead mean
 # "use the task default of 3", which is why it is set here.)
 @celery_app.task(
-    bind=True, name="notifications.deliver", acks_late=True, max_retries=None, ignore_result=True
+    bind=True,
+    name="notifications.deliver",
+    acks_late=True,
+    max_retries=None,
+    ignore_result=True,
 )
 def deliver_notification(self: Task, notification_id: int) -> str:
     """Deliver one outbox row; re-schedule itself with back-off on failure."""
@@ -83,7 +87,9 @@ def deliver_notification(self: Task, notification_id: int) -> str:
     logger.info("notification %s -> %s", notification_id, outcome)
     if outcome == "retry":
         raise self.retry(
-            countdown=backoff_seconds(attempts, settings.notification_retry_base_seconds)
+            countdown=backoff_seconds(
+                attempts, settings.notification_retry_base_seconds
+            )
         )
     return outcome
 
@@ -105,7 +111,9 @@ def sweep_pending() -> int:
     ids = run_async(find)
     queued = notifications.enqueue_deliveries(ids)
     if ids:
-        logger.warning("sweeper re-queued %d/%d pending notifications", queued, len(ids))
+        logger.warning(
+            "sweeper re-queued %d/%d pending notifications", queued, len(ids)
+        )
     return queued
 
 
@@ -123,7 +131,9 @@ def resolve_kb_dir(requested: str, allowed_root: str) -> Path:
         else Path(requested).resolve()
     )
     if target != root and root not in target.parents:
-        raise ValueError(f"path {requested!r} is outside the allowed directory {allowed_root!r}")
+        raise ValueError(
+            f"path {requested!r} is outside the allowed directory {allowed_root!r}"
+        )
     if not target.is_dir():
         raise ValueError(f"{requested!r} is not a directory")
     return target

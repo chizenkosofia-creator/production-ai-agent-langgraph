@@ -60,7 +60,11 @@ from api.schemas import (
     HistoryResponse,
 )
 from core.config import Settings, get_settings
-from core.observability import MetricsCallback, configure_observability, log_turn_metrics
+from core.observability import (
+    MetricsCallback,
+    configure_observability,
+    log_turn_metrics,
+)
 
 logger = logging.getLogger("api")
 
@@ -88,7 +92,8 @@ def _content_text(content: Any) -> str:
     if isinstance(content, str):
         return content
     return "".join(
-        block.get("text", "") if isinstance(block, dict) else str(block) for block in content
+        block.get("text", "") if isinstance(block, dict) else str(block)
+        for block in content
     )
 
 
@@ -162,7 +167,10 @@ def _configure_logging(level: str) -> None:
 # SSE machinery
 # ---------------------------------------------------------------------------
 async def _graph_events(
-    runtime: AgentRuntime, payload: ChatRequest, settings: Settings, request_id: str = "-"
+    runtime: AgentRuntime,
+    payload: ChatRequest,
+    settings: Settings,
+    request_id: str = "-",
 ) -> AsyncIterator[str]:
     """Run one turn and translate LangGraph stream parts into SSE frames.
 
@@ -183,7 +191,10 @@ async def _graph_events(
     ):
         if mode == "messages":
             chunk, meta = data
-            if isinstance(chunk, AIMessageChunk) and meta.get("langgraph_node") == "agent":
+            if (
+                isinstance(chunk, AIMessageChunk)
+                and meta.get("langgraph_node") == "agent"
+            ):
                 text = _content_text(chunk.content)
                 if text:
                     yield _sse("token", {"text": text})
@@ -259,7 +270,9 @@ async def _stream_turn(
     try:
         async with thread_lock(runtime.lock_pool, payload.thread_id) as acquired:
             if not acquired:
-                yield _sse("error", {"detail": "Another request is running on this thread."})
+                yield _sse(
+                    "error", {"detail": "Another request is running on this thread."}
+                )
                 return
             events = _with_heartbeat(
                 _graph_events(runtime, payload, settings, request_id),
@@ -274,7 +287,9 @@ async def _stream_turn(
                 yield frame
     except GraphRecursionError:
         logger.error("Recursion limit hit (thread=%s)", payload.thread_id)
-        yield _sse("error", {"detail": "The request required too many reasoning steps."})
+        yield _sse(
+            "error", {"detail": "The request required too many reasoning steps."}
+        )
     except TimeoutError:
         logger.error("Agent timed out (thread=%s)", payload.thread_id)
         yield _sse("error", {"detail": "Agent timed out."})
@@ -324,7 +339,9 @@ async def chat(
             )
         except asyncio.TimeoutError as exc:
             logger.error("Agent timed out (thread=%s)", payload.thread_id)
-            raise HTTPException(status.HTTP_504_GATEWAY_TIMEOUT, "Agent timed out") from exc
+            raise HTTPException(
+                status.HTTP_504_GATEWAY_TIMEOUT, "Agent timed out"
+            ) from exc
         except GraphRecursionError as exc:
             logger.error("Recursion limit hit (thread=%s)", payload.thread_id)
             raise HTTPException(
@@ -367,7 +384,9 @@ async def get_history(
     thread_id: Annotated[str, Path(pattern=THREAD_ID_PATTERN)],
 ) -> HistoryResponse:
     """Return the persisted conversation for a thread (404 if unknown)."""
-    snapshot = await runtime.graph.aget_state({"configurable": {"thread_id": thread_id}})
+    snapshot = await runtime.graph.aget_state(
+        {"configurable": {"thread_id": thread_id}}
+    )
     messages: list[BaseMessage] = (snapshot.values or {}).get("messages", [])
     if not messages:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Thread not found")
@@ -376,7 +395,9 @@ async def get_history(
         thread_id=thread_id,
         messages=[
             HistoryMessage(
-                role=m.type if m.type in ("human", "ai", "tool", "system") else "system",
+                role=(
+                    m.type if m.type in ("human", "ai", "tool", "system") else "system"
+                ),
                 content=_message_text(m),
                 tool_name=m.name if isinstance(m, ToolMessage) else None,
             )
@@ -436,18 +457,25 @@ def create_app() -> FastAPI:
     async def http_exception_handler(_: Request, exc: HTTPException) -> JSONResponse:
         return JSONResponse(
             status_code=exc.status_code,
-            content=ErrorResponse(error="http_error", detail=str(exc.detail)).model_dump(),
+            content=ErrorResponse(
+                error="http_error", detail=str(exc.detail)
+            ).model_dump(),
         )
 
     @app.exception_handler(RequestValidationError)
-    async def validation_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+    async def validation_handler(
+        _: Request, exc: RequestValidationError
+    ) -> JSONResponse:
         return JSONResponse(
             status_code=422,
             content=ErrorResponse(
                 error="validation_error",
                 detail=json.dumps(
                     [
-                        {"field": ".".join(str(p) for p in e["loc"]), "message": e["msg"]}
+                        {
+                            "field": ".".join(str(p) for p in e["loc"]),
+                            "message": e["msg"],
+                        }
                         for e in exc.errors()
                     ]
                 ),

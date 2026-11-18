@@ -23,10 +23,15 @@ from services import tickets
 pytestmark = pytest.mark.integration
 
 NOW = datetime(2026, 11, 10, 12, 0, tzinfo=timezone.utc)
-ISSUE = {"title": "Dashboards are slow", "description": "Dashboards take 30 seconds to load."}
+ISSUE = {
+    "title": "Dashboards are slow",
+    "description": "Dashboards take 30 seconds to load.",
+}
 
 
-async def _make(factory, *, created, priority="medium", status="open", closed=None, now=NOW):
+async def _make(
+    factory, *, created, priority="medium", status="open", closed=None, now=NOW
+):
     """Insert a ticket with controlled timestamps and return its id."""
     async with factory() as session:
         async with session.begin():
@@ -55,7 +60,9 @@ async def test_create_ticket_persists_and_normal_priority_sends_no_alert(db):
 
 
 async def test_create_ticket_rejects_unknown_customer_and_bad_priority(db):
-    bad_customer = await create_support_ticket.ainvoke({**ISSUE, "customer_id": "CUS-9999"})
+    bad_customer = await create_support_ticket.ainvoke(
+        {**ISSUE, "customer_id": "CUS-9999"}
+    )
     assert bad_customer.startswith("ERROR:")
     with pytest.raises(ValidationError):
         await create_support_ticket.ainvoke({**ISSUE, "priority": "catastrophic"})
@@ -65,7 +72,10 @@ async def test_create_ticket_rejects_unknown_customer_and_bad_priority(db):
 
 async def test_ticket_text_is_normalised_before_storage(db):
     """Zero-width characters and look-alike unicode are stripped by SafeText."""
-    sneaky = {"title": "Pa​ge  is down", "description": "Ｓｅｒｖｅｒ returns errors constantly."}
+    sneaky = {
+        "title": "Pa​ge  is down",
+        "description": "Ｓｅｒｖｅｒ returns errors constantly.",
+    }
     out = json.loads(await create_support_ticket.ainvoke(sneaky))
     assert out["title"] == "Page  is down"
     assert out["description"].startswith("Server returns")
@@ -75,8 +85,12 @@ async def test_ticket_text_is_normalised_before_storage(db):
 async def test_weekly_stats_windows_status_buckets_and_backlog(db):
     d = lambda days: NOW - timedelta(days=days)  # noqa: E731
     await _make(db, created=d(1), priority="high")  # open, this week
-    await _make(db, created=d(3), status="closed", closed=d(2))  # created + closed this week
-    await _make(db, created=d(10), status="closed", closed=d(1))  # old, resolved this week
+    await _make(
+        db, created=d(3), status="closed", closed=d(2)
+    )  # created + closed this week
+    await _make(
+        db, created=d(10), status="closed", closed=d(1)
+    )  # old, resolved this week
     await _make(db, created=d(8), priority="low")  # open, last week
     await _make(db, created=d(7), priority="urgent")  # exactly on the boundary
     await _make(db, created=d(2), status="in_progress", closed=None)
@@ -113,17 +127,27 @@ async def test_weekly_stats_windows_status_buckets_and_backlog(db):
 async def test_analytics_tool_returns_json_for_the_real_clock(db):
     real_now = datetime.now(timezone.utc)
     await _make(db, created=real_now - timedelta(days=1))
-    await _make(db, created=real_now - timedelta(days=2), status="closed", closed=real_now)
+    await _make(
+        db, created=real_now - timedelta(days=2), status="closed", closed=real_now
+    )
     stats = json.loads(await ticket_analytics.ainvoke({"week_offset": 0}))
     assert stats["created_in_window"]["total"] == 2
     assert stats["created_in_window"]["closed"] == 1
     assert stats["resolved_in_window"] == 1
-    assert json.loads(await ticket_analytics.ainvoke({}))["created_in_window"]["total"] == 2
+    assert (
+        json.loads(await ticket_analytics.ainvoke({}))["created_in_window"]["total"]
+        == 2
+    )
 
 
 async def test_analytics_empty_database_is_all_zero(db):
     stats = json.loads(await ticket_analytics.ainvoke({}))
-    assert stats["created_in_window"] == {"open": 0, "in_progress": 0, "closed": 0, "total": 0}
+    assert stats["created_in_window"] == {
+        "open": 0,
+        "in_progress": 0,
+        "closed": 0,
+        "total": 0,
+    }
     assert stats["backlog_now"] == {"total": 0}
 
 
@@ -131,10 +155,14 @@ async def test_analytics_empty_database_is_all_zero(db):
 async def test_status_lifecycle_stamps_and_clears_closed_at(db):
     tid = json.loads(await create_support_ticket.ainvoke(ISSUE))["ticket_id"]
 
-    closed = json.loads(await update_ticket.ainvoke({"ticket_id": tid, "status": "closed"}))
+    closed = json.loads(
+        await update_ticket.ainvoke({"ticket_id": tid, "status": "closed"})
+    )
     assert closed["status"] == "closed" and closed["closed_at"] is not None
 
-    reopened = json.loads(await update_ticket.ainvoke({"ticket_id": tid, "status": "in_progress"}))
+    reopened = json.loads(
+        await update_ticket.ainvoke({"ticket_id": tid, "status": "in_progress"})
+    )
     assert reopened["status"] == "in_progress" and reopened["closed_at"] is None
 
 
@@ -152,7 +180,9 @@ async def test_assignment_is_case_insensitive_and_persisted(db):
 
 async def test_update_errors_are_strings_the_agent_can_act_on(db):
     tid = json.loads(await create_support_ticket.ainvoke(ISSUE))["ticket_id"]
-    missing = await update_ticket.ainvoke({"ticket_id": "TCK-DEADBEEF", "status": "closed"})
+    missing = await update_ticket.ainvoke(
+        {"ticket_id": "TCK-DEADBEEF", "status": "closed"}
+    )
     nobody = await update_ticket.ainvoke(
         {"ticket_id": tid, "assignee_email": "ghost@nowhere.example"}
     )
@@ -160,7 +190,9 @@ async def test_update_errors_are_strings_the_agent_can_act_on(db):
     assert nobody.startswith("ERROR:") and "list_operators" in nobody
 
     async with db() as session:
-        await session.execute(text("UPDATE operators SET active = false WHERE name = 'Liam Novak'"))
+        await session.execute(
+            text("UPDATE operators SET active = false WHERE name = 'Liam Novak'")
+        )
         await session.commit()
     inactive = await update_ticket.ainvoke(
         {"ticket_id": tid, "assignee_email": "liam.novak@support.example"}
@@ -172,14 +204,18 @@ async def test_update_requires_a_change_and_a_well_formed_id(db):
     with pytest.raises(ValidationError):
         await update_ticket.ainvoke({"ticket_id": "TCK-1A2B3C4D"})
     with pytest.raises(ValidationError):
-        await update_ticket.ainvoke({"ticket_id": "1; DROP TABLE tickets", "status": "closed"})
+        await update_ticket.ainvoke(
+            {"ticket_id": "1; DROP TABLE tickets", "status": "closed"}
+        )
 
 
 async def test_concurrent_updates_serialise_without_losing_either_change(db):
     tid = json.loads(await create_support_ticket.ainvoke(ISSUE))["ticket_id"]
     await asyncio.gather(
         update_ticket.ainvoke({"ticket_id": tid, "status": "closed"}),
-        update_ticket.ainvoke({"ticket_id": tid, "assignee_email": "aisha.rahman@support.example"}),
+        update_ticket.ainvoke(
+            {"ticket_id": tid, "assignee_email": "aisha.rahman@support.example"}
+        ),
     )
     async with db() as session:
         row = await session.get(Ticket, tid)

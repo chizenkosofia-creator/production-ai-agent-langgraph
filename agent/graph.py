@@ -97,7 +97,9 @@ def should_continue(state: AgentState) -> Literal["tools", "limit", "end"]:
     return "tools"
 
 
-def build_llm(settings: Settings, http_async_client: Optional[Any] = None) -> ChatOpenAI:
+def build_llm(
+    settings: Settings, http_async_client: Optional[Any] = None
+) -> ChatOpenAI:
     """Chat model for any OpenAI-compatible endpoint (Groq by default).
 
     ``http_async_client`` lets tests inject an ``httpx.AsyncClient`` with a mock
@@ -146,7 +148,9 @@ def build_graph(
             include_system=False,
             allow_partial=False,
         )
-        response = await llm_with_tools.ainvoke([SystemMessage(content=SYSTEM_PROMPT), *window])
+        response = await llm_with_tools.ainvoke(
+            [SystemMessage(content=SYSTEM_PROMPT), *window]
+        )
         return {"messages": [response], "iterations": state.get("iterations", 0) + 1}
 
     def limit_reached_node(state: AgentState) -> dict[str, Any]:
@@ -173,7 +177,9 @@ def build_graph(
 
     workflow = StateGraph(AgentState)
     workflow.add_node("agent", agent_node)
-    workflow.add_node("tools", ToolNode(ALL_TOOLS, handle_tool_errors=_format_tool_error))
+    workflow.add_node(
+        "tools", ToolNode(ALL_TOOLS, handle_tool_errors=_format_tool_error)
+    )
     workflow.add_node("limit_reached", limit_reached_node)
 
     workflow.add_edge(START, "agent")
@@ -200,7 +206,9 @@ class AgentRuntime:
 
 
 @asynccontextmanager
-async def graph_lifespan(settings: Optional[Settings] = None) -> AsyncIterator[AgentRuntime]:
+async def graph_lifespan(
+    settings: Optional[Settings] = None,
+) -> AsyncIterator[AgentRuntime]:
     """Open pools, run checkpoint migrations, init RAG, yield the runtime.
 
     A pool (rather than one connection) lets concurrent requests checkpoint in
@@ -235,7 +243,9 @@ async def graph_lifespan(settings: Optional[Settings] = None) -> AsyncIterator[A
         logger.info("Postgres checkpointer ready")
         init_vector_store(settings)
         init_db(settings)
-        yield AgentRuntime(graph=build_graph(checkpointer, settings), lock_pool=lock_pool)
+        yield AgentRuntime(
+            graph=build_graph(checkpointer, settings), lock_pool=lock_pool
+        )
     finally:
         await close_db()
         await close_vector_store()

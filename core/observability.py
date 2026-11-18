@@ -42,7 +42,9 @@ def configure_observability(settings: Settings) -> bool:
         if settings.langsmith_endpoint:
             os.environ["LANGSMITH_ENDPOINT"] = settings.langsmith_endpoint
             os.environ["LANGCHAIN_ENDPOINT"] = settings.langsmith_endpoint
-        logger.info("LangSmith tracing enabled (project=%s)", settings.langsmith_project)
+        logger.info(
+            "LangSmith tracing enabled (project=%s)", settings.langsmith_project
+        )
     return enabled
 
 
@@ -97,7 +99,9 @@ class MetricsCallback(AsyncCallbackHandler):
     async def on_chain_end(self, outputs: Any, *, run_id: UUID, **kwargs: Any) -> None:
         self._end(run_id)
 
-    async def on_chain_error(self, error: BaseException, *, run_id: UUID, **kwargs: Any) -> None:
+    async def on_chain_error(
+        self, error: BaseException, *, run_id: UUID, **kwargs: Any
+    ) -> None:
         self._end(run_id)
 
     # -- tools ---------------------------------------------------------------------
@@ -110,7 +114,9 @@ class MetricsCallback(AsyncCallbackHandler):
     async def on_tool_end(self, output: Any, *, run_id: UUID, **kwargs: Any) -> None:
         self._end(run_id)
 
-    async def on_tool_error(self, error: BaseException, *, run_id: UUID, **kwargs: Any) -> None:
+    async def on_tool_error(
+        self, error: BaseException, *, run_id: UUID, **kwargs: Any
+    ) -> None:
         self._end(run_id)
 
     # -- LLM -----------------------------------------------------------------------
@@ -119,12 +125,16 @@ class MetricsCallback(AsyncCallbackHandler):
     ) -> None:
         self._begin(run_id, "llm", "llm")
 
-    async def on_llm_end(self, response: LLMResult, *, run_id: UUID, **kwargs: Any) -> None:
+    async def on_llm_end(
+        self, response: LLMResult, *, run_id: UUID, **kwargs: Any
+    ) -> None:
         self._end(run_id)
         found = False
         for generations in response.generations:
             for generation in generations:
-                usage = getattr(getattr(generation, "message", None), "usage_metadata", None)
+                usage = getattr(
+                    getattr(generation, "message", None), "usage_metadata", None
+                )
                 if usage:
                     self.input_tokens += int(usage.get("input_tokens", 0))
                     self.output_tokens += int(usage.get("output_tokens", 0))
@@ -134,7 +144,9 @@ class MetricsCallback(AsyncCallbackHandler):
             self.input_tokens += int(raw.get("prompt_tokens", 0))
             self.output_tokens += int(raw.get("completion_tokens", 0))
 
-    async def on_llm_error(self, error: BaseException, *, run_id: UUID, **kwargs: Any) -> None:
+    async def on_llm_error(
+        self, error: BaseException, *, run_id: UUID, **kwargs: Any
+    ) -> None:
         self._end(run_id)
 
     # -- output ----------------------------------------------------------------------
