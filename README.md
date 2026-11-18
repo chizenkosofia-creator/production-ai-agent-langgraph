@@ -29,6 +29,7 @@ Production-ready B2B AI Support Agent built with FastAPI, LangGraph, and Postgre
 ├── requirements.txt
 ├── requirements-dev.txt
 ├── alembic.ini
+├── pyproject.toml
 └── pytest.ini
 
 ```

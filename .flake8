@@ -17,3 +17,7 @@ per-file-ignores =
     tests/conftest.py: E402
     # fixtures re-imported from another test module look "redefined" to flake8
     tests/test_guardrails_observability.py: F401, F811
+
+[isort]
+profile = black
+line_length = 88

@@ -24,7 +24,8 @@ from core.observability import (
     log_turn_metrics,
 )
 from tests.fakes import ScriptedChatModel, tool_call_message, with_usage
-from tests.test_api_stream import make_client, parse_sse  # noqa: F401  (pytest fixture)
+from tests.test_api_stream import make_client  # noqa: F401  (pytest fixture)
+from tests.test_api_stream import parse_sse
 
 # ============================ Track 4: guardrails =============================
 BENIGN = [
